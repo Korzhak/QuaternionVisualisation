@@ -2,7 +2,7 @@
 
 The program that shows how quaternions, Euler angles and Direct Cosine Matrix work.
 
-<div style="text-align:center"><img src="img/QuaternionVisualisation.gif" /></div>.
+![](img/QuaternionVisualisation.gif)
 
 ## How to use
 
