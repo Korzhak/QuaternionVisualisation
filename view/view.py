@@ -60,9 +60,9 @@ class ViewDcmTester(Ui_MainWindow):
         self.y_text_point = np.array([0, 0, self.text_vector_distance])
         self.z_text_point = np.array([self.text_vector_distance, 0, 0])
 
-        self.x_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.x_point]), width=3)
-        self.y_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.y_point]), width=3)
-        self.z_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.z_point]), width=3)
+        self.x_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.x_point]), width=6)
+        self.y_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.y_point]), width=6)
+        self.z_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.z_point]), width=6)
         self.rot_vector_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.rot_vector_point]), width=3)
 
         self.x_axis.setData(color=(1, 0, 0, 1))

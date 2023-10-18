@@ -17,7 +17,7 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>40</x>
       <y>80</y>
       <width>47</width>
       <height>13</height>
@@ -36,7 +36,7 @@
    <widget class="QDoubleSpinBox" name="vx">
     <property name="geometry">
      <rect>
-      <x>120</x>
+      <x>130</x>
       <y>100</y>
       <width>62</width>
       <height>22</height>
@@ -49,7 +49,7 @@
    <widget class="QDoubleSpinBox" name="vy">
     <property name="geometry">
      <rect>
-      <x>190</x>
+      <x>200</x>
       <y>100</y>
       <width>62</width>
       <height>22</height>
@@ -62,7 +62,7 @@
    <widget class="QDoubleSpinBox" name="vz">
     <property name="geometry">
      <rect>
-      <x>260</x>
+      <x>270</x>
       <y>100</y>
       <width>62</width>
       <height>22</height>
@@ -75,9 +75,9 @@
    <widget class="QDoubleSpinBox" name="angle">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>40</x>
       <y>100</y>
-      <width>81</width>
+      <width>71</width>
       <height>22</height>
      </rect>
     </property>
@@ -91,7 +91,7 @@
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>120</x>
+      <x>130</x>
       <y>80</y>
       <width>47</width>
       <height>13</height>
@@ -113,7 +113,7 @@
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>190</x>
+      <x>200</x>
       <y>80</y>
       <width>47</width>
       <height>13</height>
@@ -135,7 +135,7 @@
    <widget class="QLabel" name="label_4">
     <property name="geometry">
      <rect>
-      <x>260</x>
+      <x>270</x>
       <y>80</y>
       <width>47</width>
       <height>13</height>
@@ -1066,6 +1066,19 @@
     </property>
     <property name="maximum">
      <double>180.000000000000000</double>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="showVector">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>100</y>
+      <width>16</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
     </property>
    </widget>
   </widget>
