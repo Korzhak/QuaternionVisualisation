@@ -222,6 +222,11 @@ class ViewDcmTester(Ui_MainWindow):
         vy = self.vy.value()
         vz = self.vz.value()
 
+        self.angle_val = angle
+        self.vector_val[0] = vx
+        self.vector_val[1] = vy
+        self.vector_val[2] = vz
+
         self.q[0] = np.cos(angle / 2)
         self.q[1] = np.sin(angle / 2) * vx
         self.q[2] = np.sin(angle / 2) * vy
@@ -354,6 +359,14 @@ class ViewDcmTester(Ui_MainWindow):
         self.z_axis.setData(pos=np.array([np.zeros(3), self.vector_len * self.dcm[:, 0].copy()]))
         self.text_item_z.setData(pos=self.text_vector_distance * self.dcm[:, 0].copy())
 
-        vector = np.array([self.vector_val[2], self.vector_val[1], self.vector_val[0]])
+        vector = np.array([self.vector_val[2], self.vector_val[0], self.vector_val[1]])
+
+        print("dcm")
+        print(self.dcm[:, 1])
+        print(self.dcm[:, 2])
+        print(self.dcm[:, 0])
+        print("end dcm")
+
+        print(np.array([self.vector_val[1], self.vector_val[0], 0]))
 
         self.rot_vector_axis.setData(pos=np.array([np.zeros(3), self.vector_len * vector]))
