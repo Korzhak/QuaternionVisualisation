@@ -1,4 +1,5 @@
 import math
+import time
 import types
 import numpy as np
 from view.ui.ui import Ui_MainWindow, QtWidgets
@@ -106,6 +107,16 @@ class ViewDcmTester(Ui_MainWindow):
         self.roll.valueChanged.connect(self.callback_euler)
         self.pitch.valueChanged.connect(self.callback_euler)
         self.yaw.valueChanged.connect(self.callback_euler)
+
+        self.bt_play_animation.clicked.connect(self.animation_callback)
+
+    def animation_callback(self):
+        step = self.angle_val / 30
+
+        for i in np.arange(0, self.angle_val, step):
+            print(i)
+            self.angle.setValue(i)
+            time.sleep(0.5)
 
     def close_event(self, window, event):
         """
@@ -360,13 +371,4 @@ class ViewDcmTester(Ui_MainWindow):
         self.text_item_z.setData(pos=self.text_vector_distance * self.dcm[:, 0].copy())
 
         vector = np.array([self.vector_val[2], self.vector_val[0], self.vector_val[1]])
-
-        print("dcm")
-        print(self.dcm[:, 1])
-        print(self.dcm[:, 2])
-        print(self.dcm[:, 0])
-        print("end dcm")
-
-        print(np.array([self.vector_val[1], self.vector_val[0], 0]))
-
         self.rot_vector_axis.setData(pos=np.array([np.zeros(3), self.vector_len * vector]))
