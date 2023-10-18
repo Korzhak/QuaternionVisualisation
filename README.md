@@ -24,7 +24,7 @@ virtualenv -p python3 venv
 3. Installing requirements
 
 ```bash
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 4. Run program
