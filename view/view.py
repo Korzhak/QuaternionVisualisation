@@ -54,6 +54,7 @@ class ViewDcmTester(Ui_MainWindow):
         self.x_point = np.array([0, self.vector_len, 0])  # specify the (x, y, z) values of the second point in a tuple
         self.y_point = np.array([0, 0, self.vector_len])
         self.z_point = np.array([self.vector_len, 0, 0])
+        self.rot_vector_point = np.zeros(3)
 
         self.x_text_point = np.array([0, self.text_vector_distance, 0])
         self.y_text_point = np.array([0, 0, self.text_vector_distance])
@@ -62,14 +63,17 @@ class ViewDcmTester(Ui_MainWindow):
         self.x_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.x_point]), width=3)
         self.y_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.y_point]), width=3)
         self.z_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.z_point]), width=3)
+        self.rot_vector_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.rot_vector_point]), width=3)
 
         self.x_axis.setData(color=(1, 0, 0, 1))
         self.y_axis.setData(color=(1, 1, 0, 1))
         self.z_axis.setData(color=(0, 0, 1, 1))
+        self.rot_vector_axis.setData(color=(1, 1, 1, 0.5))
 
         self.six_dof_animation.addItem(self.x_axis)
         self.six_dof_animation.addItem(self.y_axis)
         self.six_dof_animation.addItem(self.z_axis)
+        self.six_dof_animation.addItem(self.rot_vector_axis)
 
         self.text_item_x = gl.GLTextItem(pos=self.x_text_point, text='X', color=(255, 0, 0, 200))
         self.six_dof_animation.addItem(self.text_item_x)
@@ -349,3 +353,7 @@ class ViewDcmTester(Ui_MainWindow):
         # Set Z vector
         self.z_axis.setData(pos=np.array([np.zeros(3), self.vector_len * self.dcm[:, 0].copy()]))
         self.text_item_z.setData(pos=self.text_vector_distance * self.dcm[:, 0].copy())
+
+        vector = np.array([self.vector_val[2], self.vector_val[1], self.vector_val[0]])
+
+        self.rot_vector_axis.setData(pos=np.array([np.zeros(3), self.vector_len * vector]))
