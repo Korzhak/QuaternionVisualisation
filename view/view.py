@@ -1,16 +1,17 @@
 import math
+import time
 import types
 import numpy as np
 from view.ui.ui import Ui_MainWindow, QtWidgets
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
-
+import threading
 
 class ViewDcmTester(Ui_MainWindow):
     def __init__(self, main_window):
         super(ViewDcmTester, self).__init__()
         self.main_window = main_window
-        self.main_window.setFixedSize(786, 468)
+        self.main_window.setFixedSize(964, 643)
 
         # Змінюємо метод closeEvent для вікна
         self.main_window.closeEvent = types.MethodType(self.close_event, self.main_window)
@@ -54,6 +55,7 @@ class ViewDcmTester(Ui_MainWindow):
         self.x_point = np.array([0, self.vector_len, 0])  # specify the (x, y, z) values of the second point in a tuple
         self.y_point = np.array([0, 0, self.vector_len])
         self.z_point = np.array([self.vector_len, 0, 0])
+        self.rot_vector_point = np.zeros(3)
 
         self.x_text_point = np.array([0, self.text_vector_distance, 0])
         self.y_text_point = np.array([0, 0, self.text_vector_distance])
@@ -62,14 +64,17 @@ class ViewDcmTester(Ui_MainWindow):
         self.x_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.x_point]), width=3)
         self.y_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.y_point]), width=3)
         self.z_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.z_point]), width=3)
+        self.rot_vector_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.rot_vector_point]), width=3)
 
         self.x_axis.setData(color=(1, 0, 0, 1))
         self.y_axis.setData(color=(1, 1, 0, 1))
         self.z_axis.setData(color=(0, 0, 1, 1))
+        self.rot_vector_axis.setData(color=(1, 1, 1, 0.5))
 
         self.six_dof_animation.addItem(self.x_axis)
         self.six_dof_animation.addItem(self.y_axis)
         self.six_dof_animation.addItem(self.z_axis)
+        self.six_dof_animation.addItem(self.rot_vector_axis)
 
         self.text_item_x = gl.GLTextItem(pos=self.x_text_point, text='X', color=(255, 0, 0, 200))
         self.six_dof_animation.addItem(self.text_item_x)
@@ -102,6 +107,21 @@ class ViewDcmTester(Ui_MainWindow):
         self.roll.valueChanged.connect(self.callback_euler)
         self.pitch.valueChanged.connect(self.callback_euler)
         self.yaw.valueChanged.connect(self.callback_euler)
+
+        self.bt_play_animation.clicked.connect(self.animation_callback)
+
+    def animation_callback(self):
+        anim = threading.Thread(target=self.animation, args=())
+        anim.start()
+
+    def animation(self):
+        step = self.angle_val / 30
+        sleep = 0.15
+        for i in np.arange(0, self.angle_val, step):
+            print(i)
+            self.angle.setValue(i)
+            time.sleep(sleep)
+            sleep -= 0.005
 
     def close_event(self, window, event):
         """
@@ -217,6 +237,11 @@ class ViewDcmTester(Ui_MainWindow):
         vx = self.vx.value()
         vy = self.vy.value()
         vz = self.vz.value()
+
+        self.angle_val = angle
+        self.vector_val[0] = vx
+        self.vector_val[1] = vy
+        self.vector_val[2] = vz
 
         self.q[0] = np.cos(angle / 2)
         self.q[1] = np.sin(angle / 2) * vx
@@ -349,3 +374,6 @@ class ViewDcmTester(Ui_MainWindow):
         # Set Z vector
         self.z_axis.setData(pos=np.array([np.zeros(3), self.vector_len * self.dcm[:, 0].copy()]))
         self.text_item_z.setData(pos=self.text_vector_distance * self.dcm[:, 0].copy())
+
+        vector = np.array([self.vector_val[2], self.vector_val[0], self.vector_val[1]])
+        self.rot_vector_axis.setData(pos=np.array([np.zeros(3), self.vector_len * vector]))
