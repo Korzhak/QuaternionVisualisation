@@ -10,7 +10,7 @@ class ViewDcmTester(Ui_MainWindow):
     def __init__(self, main_window):
         super(ViewDcmTester, self).__init__()
         self.main_window = main_window
-        self.main_window.setFixedSize(786, 468)
+        self.main_window.setFixedSize(964, 643)
 
         # Змінюємо метод closeEvent для вікна
         self.main_window.closeEvent = types.MethodType(self.close_event, self.main_window)
