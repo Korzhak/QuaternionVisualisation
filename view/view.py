@@ -5,7 +5,7 @@ import numpy as np
 from view.ui.ui import Ui_MainWindow, QtWidgets
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
-
+import threading
 
 class ViewDcmTester(Ui_MainWindow):
     def __init__(self, main_window):
@@ -61,9 +61,9 @@ class ViewDcmTester(Ui_MainWindow):
         self.y_text_point = np.array([0, 0, self.text_vector_distance])
         self.z_text_point = np.array([self.text_vector_distance, 0, 0])
 
-        self.x_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.x_point]), width=6)
-        self.y_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.y_point]), width=6)
-        self.z_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.z_point]), width=6)
+        self.x_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.x_point]), width=3)
+        self.y_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.y_point]), width=3)
+        self.z_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.z_point]), width=3)
         self.rot_vector_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.rot_vector_point]), width=3)
 
         self.x_axis.setData(color=(1, 0, 0, 1))
@@ -111,12 +111,17 @@ class ViewDcmTester(Ui_MainWindow):
         self.bt_play_animation.clicked.connect(self.animation_callback)
 
     def animation_callback(self):
-        step = self.angle_val / 30
+        anim = threading.Thread(target=self.animation, args=())
+        anim.start()
 
+    def animation(self):
+        step = self.angle_val / 30
+        sleep = 0.15
         for i in np.arange(0, self.angle_val, step):
             print(i)
             self.angle.setValue(i)
-            time.sleep(0.5)
+            time.sleep(sleep)
+            sleep -= 0.005
 
     def close_event(self, window, event):
         """
