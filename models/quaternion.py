@@ -24,10 +24,10 @@ class Quaternion:
         if self._auto_normalize_enable:
             self.normalize()
 
-        if self._is_normalized:
-            self._to_euler()
-            self._to_rotation_vector()
-            self._to_dcm()
+        # if self._is_normalized:
+        #     self._to_euler()
+        #     self._to_rotation_vector()
+        #     self._to_dcm()
 
     def make_from_euler(self, euler: np.array = np.zeros(3, dtype=np.float64)):
         if euler.any() and euler.shape[0] == 3:
@@ -146,11 +146,12 @@ class Quaternion:
         qx2 = self._q[1] ** 2
         qy2 = self._q[2] ** 2
         qz2 = self._q[3] ** 2
-        self._euler[0] = np.arctan2(2 * self._q[1] * self._q[0] - 2 * self._q[2] * self._q[3],
-                                    1 - 2 * qx2 - 2 * qz2) * 180 / np.pi
-        self._euler[2] = -np.arcsin(2 * self._q[1] * self._q[2] - 2 * self._q[3] * self._q[0]) * 180 / np.pi
-        self._euler[1] = np.arctan2(2 * self._q[2] * self._q[0] - 2 * self._q[1] * self._q[3],
-                                    1 - 2 * qy2 - 2 * qz2) * 180 / np.pi
+        self._euler[0] = np.arctan2(2 * self._q[1] * self._q[0] - 2 * self._q[2] * self._q[3], 1 - 2 * qx2 - 2 * qz2) * 180 / np.pi
+        self._euler[2] = -np.arcsin(np.around(2 * self._q[1] * self._q[2] - 2 * self._q[3] * self._q[0], decimals=4)) * 180 / np.pi
+        a = np.around(2 * self._q[2] * self._q[0] - 2 * self._q[1] * self._q[3], decimals=4)
+        b = np.around(1 - 2 * qy2 - 2 * qz2, decimals=4)
+        print(a, b)
+        self._euler[1] = np.arctan2(a, b) * 180 / np.pi
 
     def _to_rotation_vector(self):
         """
