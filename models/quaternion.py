@@ -2,32 +2,66 @@ import numpy as np
 
 MSG_Q_ALLOW_ONLY = "Quaternion allowed only"
 MSG_INT_FLOAT_Q_ALLOW_ONLY = "Int, float or Quaternion allowed only"
+MSG_INT_FLOAT_ALLOW_ONLY = "Int or float allowed only"
+MSG_NP_ARRAY_EULER = "Numpy array with 3 elements allowed only"
+MSG_NORMALIZE_FIRST = "First step you need to normalize quaternion"
 
 
 class Quaternion:
-    def __init__(self, q: np.array = np.zeros(4), euler: np.array = np.zeros(3)):
-        if q.any() and q.shape[0] == 4:
-            self._q = q
-            self._euler = euler
-            self._to_euler()
-        elif euler.any() and euler.shape[0] == 3:
-            self._q = q
-            self._euler = euler
-            self._from_euler(euler)
-        else:
-            self._q = np.array([1, 0, 0, 0], dtype=np.float64)
-            self._euler = euler
-            self._to_euler()
-
+    def __init__(self, q: np.array = np.zeros(4), auto_normalize: bool = True):
+        self._q = q if q.any() and q.shape[0] == 4 else np.array([1, 0, 0, 0], dtype=np.float64)
         self._q_len = np.linalg.norm(self._q)
-        self._q_norm = self._q / self._q_len
+
+        self._euler = np.zeros(3, dtype=np.float64)
         self._vector = np.zeros(3, dtype=np.float64)
         self._angle = 0
         self._dcm = np.eye(3, dtype=np.float64)
         self._dcm_for_qt = np.eye(3, dtype=np.float64)
 
+        self._auto_normalize_enable = auto_normalize
+        self._is_normalized = False
+
+        if self._auto_normalize_enable:
+            self.normalize()
+
+        if self._is_normalized:
+            self._to_euler()
+            self._to_rotation_vector()
+            self._to_dcm()
+
+    def make_from_euler(self, euler: np.array = np.zeros(3, dtype=np.float64)):
+        if euler.any() and euler.shape[0] == 3:
+            self._euler = euler
+            self._from_euler(euler)
+        else:
+            raise ValueError(MSG_NP_ARRAY_EULER)
+
+    def calc_associated_valued(self):
+        """
+        Calculating of Euler angles, DCM and rotation vector using Quaternion.
+        You have to enable auto normalizing or normalize it yourself. Otherwise,
+        will be raising exception.
+        :return: None
+        """
+        if not self._is_normalized and not self._auto_normalize_enable:
+            raise Exception(MSG_NORMALIZE_FIRST)
+
+        elif not self._is_normalized and self._auto_normalize_enable:
+            self.normalize()
+
+        self._to_euler()
         self._to_rotation_vector()
         self._to_dcm()
+
+    def auto_normalize(self, enable: bool = False):
+        self._auto_normalize_enable = enable
+
+        if enable:
+            self.normalize()
+            self.calc_associated_valued()
+
+    def is_auto_normalize(self) -> bool:
+        return self._auto_normalize_enable
 
     def w(self) -> np.float64:
         return self._q[0]
@@ -53,8 +87,8 @@ class Quaternion:
     def get_q(self) -> np.array:
         return self._q.copy()
 
-    def get_q_norm(self) -> np.array:
-        return self._q_norm.copy()
+    def get_len(self) -> float:
+        return self._q_len
 
     def get_euler(self) -> np.array:
         return self._euler
@@ -68,6 +102,19 @@ class Quaternion:
 
     def get_dcm(self) -> np.array:
         return self._dcm.copy()
+
+    def get_dcm_for_qt(self) -> np.array:
+        return self._dcm_for_qt.copy()
+
+    def normalize(self, q=None):
+        if isinstance(q, Quaternion):
+            return q / np.linalg.norm(q.get_q())
+        elif q:
+            raise ValueError(MSG_Q_ALLOW_ONLY)
+
+        self._q_len = np.linalg.norm(self._q)
+        self._q /= self._q_len
+        self._is_normalized = True
 
     def _from_euler(self, euler: np.array):
         """
@@ -88,7 +135,10 @@ class Quaternion:
         z = s1 * c2 * c3 + c1 * s2 * s3
 
         self._q = np.around(np.array([w, x, y, z], dtype=np.float64), decimals=4)
-        
+
+        if self._auto_normalize_enable:
+            self.normalize()
+
     def _to_euler(self):
         """
         Calculating Euler angles using quaternion
@@ -96,22 +146,24 @@ class Quaternion:
         qx2 = self._q[1] ** 2
         qy2 = self._q[2] ** 2
         qz2 = self._q[3] ** 2
-        self._euler[0] = np.arctan2(2 * self._q[1] * self._q[0] - 2 * self._q[2] * self._q[3], 1 - 2 * qx2 - 2 * qz2) * 180 / np.pi
+        self._euler[0] = np.arctan2(2 * self._q[1] * self._q[0] - 2 * self._q[2] * self._q[3],
+                                    1 - 2 * qx2 - 2 * qz2) * 180 / np.pi
         self._euler[2] = -np.arcsin(2 * self._q[1] * self._q[2] - 2 * self._q[3] * self._q[0]) * 180 / np.pi
-        self._euler[1] = np.arctan2(2 * self._q[2] * self._q[0] - 2 * self._q[1] * self._q[3], 1 - 2 * qy2 - 2 * qz2) * 180 / np.pi
+        self._euler[1] = np.arctan2(2 * self._q[2] * self._q[0] - 2 * self._q[1] * self._q[3],
+                                    1 - 2 * qy2 - 2 * qz2) * 180 / np.pi
 
     def _to_rotation_vector(self):
         """
         Calculating of vector and rotation angle around this vector
         """
-        self._angle = np.rad2deg(2 * np.arccos(self._q_norm[0]))
+        self._angle = np.rad2deg(2 * np.arccos(self._q[0]))
 
-        power_sum = self._q_norm[1]**2 + self._q_norm[2]**2 + self._q_norm[3]**2
+        power_sum = self._q[1] ** 2 + self._q[2] ** 2 + self._q[3] ** 2
         vector_len = np.linalg.norm(np.sqrt(power_sum if power_sum else 1))
 
-        self._vector[0] = self._q_norm[1] / vector_len
-        self._vector[1] = self._q_norm[2] / vector_len
-        self._vector[2] = self._q_norm[3] / vector_len
+        self._vector[0] = self._q[1] / vector_len
+        self._vector[1] = self._q[2] / vector_len
+        self._vector[2] = self._q[3] / vector_len
 
     def _to_dcm(self):
         """
@@ -146,10 +198,11 @@ class Quaternion:
         self._dcm = np.around(dcm, decimals=4)
         self._dcm_for_qt = np.around(dcm_for_qt, decimals=4)
 
-    def quaternion_multiply(self, q2):
+    def quaternion_multiply(self, q2, normalize_result: bool = True):
         """
         Multiplying current quaternions and q2 in arguments
         :param q2: second quaternion
+        :param normalize_result:
         :return: new quaternion
         """
         res = np.zeros(4, dtype=np.float64)
@@ -157,30 +210,55 @@ class Quaternion:
         res[1] = self.w() * q2.x() + self.x() * q2.w() + self.y() * q2.z() - self.z() * q2.y()
         res[2] = self.w() * q2.y() - self.x() * q2.z() + self.y() * q2.w() + self.z() * q2.x()
         res[3] = self.w() * q2.z() + self.x() * q2.y() - self.y() * q2.x() + self.z() * q2.w()
-        return Quaternion(res)
+        _q = Quaternion(res)
+        if normalize_result:
+            return self.normalize(_q)
+        return _q
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Quaternion):
-            return self._q == other._q
+            return np.array_equal(self._q, other._q)
         else:
             raise ValueError(MSG_Q_ALLOW_ONLY)
 
     def __add__(self, other):
         if isinstance(other, Quaternion):
-            return Quaternion(self._q + other._q)
+            return Quaternion(self._q + other._q, auto_normalize=self._auto_normalize_enable)
         else:
             raise ValueError(MSG_Q_ALLOW_ONLY)
 
     def __sub__(self, other):
         if isinstance(other, Quaternion):
-            return Quaternion(self._q - other._q)
+            return Quaternion(self._q - other._q, auto_normalize=self._auto_normalize_enable)
         else:
             raise ValueError(MSG_Q_ALLOW_ONLY)
 
     def __mul__(self, other):
-        if isinstance(other, (int, float)):
-            return Quaternion(self._q * other)
+        if isinstance(other, (float, int)) :
+            return Quaternion(self._q * other, auto_normalize=self._auto_normalize_enable)
         elif isinstance(other, Quaternion):
-            return self.quaternion_multiply(other)
+            return self.quaternion_multiply(other, normalize_result=self._auto_normalize_enable)
         else:
             raise ValueError(MSG_INT_FLOAT_Q_ALLOW_ONLY)
+
+    def __rmul__(self, other):
+        if isinstance(other, (int, float)):
+            return Quaternion(self._q * other, auto_normalize=self._auto_normalize_enable)
+        else:
+            raise ValueError(MSG_INT_FLOAT_Q_ALLOW_ONLY)
+
+    def __truediv__(self, other):
+        if isinstance(other, (int, float)):
+            return Quaternion(self._q / other, auto_normalize=self._auto_normalize_enable)
+        else:
+            raise ValueError(MSG_INT_FLOAT_ALLOW_ONLY)
+
+    def __repr__(self):
+        return f"[w={self.w()}\tx={self.x()}\ty={self.y()}\tz={self.z()}]"
+
+    def __str__(self):
+        return self.__repr__()
+
+
+if __name__ == "__main__":
+    q = Quaternion(auto_normalize=False)
