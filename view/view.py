@@ -6,6 +6,7 @@ from view.ui.ui import Ui_MainWindow, QtWidgets
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 import threading
+from models.quaternion import Quaternion
 
 class ViewDcmTester(Ui_MainWindow):
     def __init__(self, main_window):
@@ -19,6 +20,8 @@ class ViewDcmTester(Ui_MainWindow):
         self.setupUi(main_window)
 
         # Шести-осьова анімація обертання об'єкта в просторі
+        self.q_ = Quaternion()
+
         self.vector_len = 0.1
         self.text_vector_distance = 0.12
         self.dcm = np.eye(3, dtype=np.float64)
@@ -117,7 +120,7 @@ class ViewDcmTester(Ui_MainWindow):
     def animation(self):
         step = self.angle_val / 30
         sleep = 0.15
-        for i in np.arange(0, self.angle_val, step):
+        for i in np.arange(0, self.angle_val+step, step):
             print(i)
             self.angle.setValue(i)
             time.sleep(sleep)

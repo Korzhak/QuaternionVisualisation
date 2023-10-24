@@ -21,14 +21,6 @@ class Quaternion:
         self._auto_normalize_enable = auto_normalize
         self._is_normalized = False
 
-        if self._auto_normalize_enable:
-            self.normalize()
-
-        # if self._is_normalized:
-        #     self._to_euler()
-        #     self._to_rotation_vector()
-        #     self._to_dcm()
-
     def make_from_euler(self, euler: np.array = np.zeros(3, dtype=np.float64)):
         if euler.any() and euler.shape[0] == 3:
             self._euler = euler
@@ -139,10 +131,13 @@ class Quaternion:
         if self._auto_normalize_enable:
             self.normalize()
 
-    def _to_euler(self):
+    def _to_euler(self, q = None):
         """
         Calculating Euler angles using quaternion
         """
+        if not isinstance(q, Quaternion):
+            return
+
         qx2 = self._q[1] ** 2
         qy2 = self._q[2] ** 2
         qz2 = self._q[3] ** 2
