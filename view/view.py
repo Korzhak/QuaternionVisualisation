@@ -218,15 +218,18 @@ class ViewDcmTester(Ui_MainWindow):
         pitch = np.deg2rad(self.pitch.value())
         yaw = np.deg2rad(self.yaw.value())
 
-        self.q_from_euler(roll, pitch, yaw)
+        self.q_.set_using_euler(np.array([roll, pitch, yaw], dtype=np.float64))
 
-        self.norm_val = np.around(np.linalg.norm(self.q), decimals=4)
+        self.norm_val = self.q_.get_q_len()
 
-        self.q_norm = self.q / self.norm_val
+        self.q_norm = self.q_.get_q_array()
         self.q_norm = np.around(self.q_norm, decimals=4)
-
-        self.q_to_dcm()
-        self.q_to_angle_vector()
+        self.dcm = self.q_.get_dcm()
+        rot_vector = self.q_.get_rotation_vector()
+        self.angle_val = rot_vector[0]
+        self.vector_val[0] = rot_vector[1]
+        self.vector_val[1] = rot_vector[2]
+        self.vector_val[2] = rot_vector[3]
 
         self.update_q()
         self.update_angle_vector()

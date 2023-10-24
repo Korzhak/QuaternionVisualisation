@@ -38,8 +38,8 @@ class Quaternion:
     def normalize(self, q=None):
         if isinstance(q, Quaternion):
             return q / np.linalg.norm(q.get_q_array())
-        elif q:
-            raise ValueError(MSG_Q_ALLOW_ONLY)
+        elif isinstance(q, np.ndarray):
+            return q / np.linalg.norm(q)
 
         self._q_len = np.linalg.norm(self._q)
         self._q /= self._q_len
