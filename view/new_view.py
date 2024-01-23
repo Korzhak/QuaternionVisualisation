@@ -21,7 +21,7 @@ class ViewQVisualiser(Ui_MainWindow):
         self.setupUi(main_window)
 
         # Шести-осьова анімація обертання об'єкта в просторі
-        self.q_ = Quaternion()
+        self.q = Quaternion()
 
         self.vector_len = 0.1
         self.text_vector_distance = 0.12
@@ -85,6 +85,10 @@ class ViewQVisualiser(Ui_MainWindow):
         self.six_dof_animation.setCameraPosition(distance=0.5)
         self.six_dof_animation.setBackgroundColor(background)
 
+        self.update_q()
+        self.update_euler()
+        self.update()
+
         self.connector()
 
 
@@ -98,19 +102,19 @@ class ViewQVisualiser(Ui_MainWindow):
         """
         Initialization events with callbacks
         """
-        # self.angle.valueChanged.connect(self.callback_angle_vector)
-        # self.vx.valueChanged.connect(self.callback_angle_vector)
-        # self.vy.valueChanged.connect(self.callback_angle_vector)
-        # self.vz.valueChanged.connect(self.callback_angle_vector)
+        self.angle.valueChanged.connect(self.callback_rotation_vector)
+        self.vx.valueChanged.connect(self.callback_rotation_vector)
+        self.vy.valueChanged.connect(self.callback_rotation_vector)
+        self.vz.valueChanged.connect(self.callback_rotation_vector)
 
         self.qw.valueChanged.connect(self.callback_q)
         self.qx.valueChanged.connect(self.callback_q)
         self.qy.valueChanged.connect(self.callback_q)
         self.qz.valueChanged.connect(self.callback_q)
 
-        # self.roll.valueChanged.connect(self.callback_euler)
-        # self.pitch.valueChanged.connect(self.callback_euler)
-        # self.yaw.valueChanged.connect(self.callback_euler)
+        self.roll.valueChanged.connect(self.callback_euler)
+        self.pitch.valueChanged.connect(self.callback_euler)
+        self.yaw.valueChanged.connect(self.callback_euler)
 
         # self.bt_play_animation.clicked.connect(self.animation_callback)
 
@@ -118,31 +122,98 @@ class ViewQVisualiser(Ui_MainWindow):
         """
         Callback which callings when changing quaternion double spin boxes
         """
-        self.q_.set_using_q(np.array([
+        self.q.set_using_q(np.array([
             self.qw.value(), self.qx.value(), self.qy.value(), self.qz.value()
         ]))
 
-        # self.q_to_dcm()
-        # self.q_to_euler()
-        # self.q_to_angle_vector()
-        #
-        # self.update_euler()
-        # self.update_angle_vector()
+        self.update_rotation_vector()
+        self.update_euler()
         self.update()
+
+    def callback_euler(self):
+        roll = np.deg2rad(self.roll.value())
+        pitch = np.deg2rad(self.pitch.value())
+        yaw = np.deg2rad(self.yaw.value())
+
+        self.q.set_using_euler(np.array([roll, pitch, yaw]))
+
+        self.update_rotation_vector()
+        self.update_q()
+        self.update()
+
+    def callback_rotation_vector(self):
+        angle = np.deg2rad(self.angle.value())
+        vx = self.vx.value()
+        vy = self.vy.value()
+        vz = self.vz.value()
+
+        self.q.set_using_rotation_vector(np.array([angle, vx, vy, vz], dtype=np.float64))
+
+        self.update_euler()
+        self.update_q()
+        self.update()
+    
+    def update_rotation_vector(self):
+        self.angle.blockSignals(True)
+        self.vx.blockSignals(True)
+        self.vy.blockSignals(True)
+        self.vz.blockSignals(True)
+
+        rotation_vector = self.q.rotation_vector
+        self.angle.setValue(rotation_vector[0])
+        self.vx.setValue(rotation_vector[1])
+        self.vy.setValue(rotation_vector[2])
+        self.vz.setValue(rotation_vector[3])
+
+        self.angle.blockSignals(False)
+        self.vx.blockSignals(False)
+        self.vy.blockSignals(False)
+        self.vz.blockSignals(False)
+
+
+    def update_euler(self):
+        self.roll.blockSignals(True)
+        self.pitch.blockSignals(True)
+        self.yaw.blockSignals(True)
+
+        euler = self.q.euler
+        self.roll.setValue(euler[0])
+        self.pitch.setValue(euler[1])
+        self.yaw.setValue(euler[2])
+
+        self.roll.blockSignals(False)
+        self.pitch.blockSignals(False)
+        self.yaw.blockSignals(False)
+
+    def update_q(self):
+        self.qw.blockSignals(True)
+        self.qx.blockSignals(True)
+        self.qy.blockSignals(True)
+        self.qz.blockSignals(True)
+
+        self.qw.setValue(self.q.w)
+        self.qx.setValue(self.q.x)
+        self.qy.setValue(self.q.y)
+        self.qz.setValue(self.q.z)
+
+        self.qw.blockSignals(False)
+        self.qx.blockSignals(False)
+        self.qy.blockSignals(False)
+        self.qz.blockSignals(False)
 
     def update(self):
         """
         Update normalized quaternion, norm of quaternion, direct cosine matrix and 3D visualisation
         """
-        self.teznor.setText(str(self.q_.length))
-        vector_val = self.q_.rotation_vector
+        self.teznor.setText(str(self.q.length))
+        vector_val = self.q.rotation_vector
 
-        self.qwn.setText(str(self.q_.w))
-        self.qxn.setText(str(self.q_.x))
-        self.qyn.setText(str(self.q_.y))
-        self.qzn.setText(str(self.q_.z))
-        
-        dcm = self.q_.dcm_for_qt
+        self.qwn.setText(str(self.q.w))
+        self.qxn.setText(str(self.q.x))
+        self.qyn.setText(str(self.q.y))
+        self.qzn.setText(str(self.q.z))
+
+        dcm = self.q.dcm_for_qt
         self.Xz.setText(str(dcm[0][1]))
         self.Xx.setText(str(dcm[1][1]))
         self.Xy.setText(str(dcm[2][1]))
