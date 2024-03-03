@@ -91,7 +91,6 @@ class ViewQVisualiser(Ui_MainWindow):
 
         self.connector()
 
-
     def __close_event(self, window, event):
         """
         Callback for close of windows event
@@ -106,7 +105,7 @@ class ViewQVisualiser(Ui_MainWindow):
         self.vx.valueChanged.connect(self.callback_rotation_vector)
         self.vy.valueChanged.connect(self.callback_rotation_vector)
         self.vz.valueChanged.connect(self.callback_rotation_vector)
-
+        self.cb_show_vector.clicked.connect(self.callback_show_rot_vector)
         self.qw.valueChanged.connect(self.callback_q)
         self.qx.valueChanged.connect(self.callback_q)
         self.qy.valueChanged.connect(self.callback_q)
@@ -116,7 +115,8 @@ class ViewQVisualiser(Ui_MainWindow):
         self.pitch.valueChanged.connect(self.callback_euler)
         self.yaw.valueChanged.connect(self.callback_euler)
 
-        # self.bt_play_animation.clicked.connect(self.animation_callback)
+        self.bt_play_animation.clicked.connect(self.callback_animation)
+        self.bt_clear.clicked.connect(self.callback_clear)
 
     def callback_q(self):
         """
@@ -152,7 +152,33 @@ class ViewQVisualiser(Ui_MainWindow):
         self.update_euler()
         self.update_q()
         self.update()
-    
+
+    def callback_show_rot_vector(self):
+        if self.cb_show_vector.isChecked():
+            self.update()
+        else:
+            vector = np.zeros(3)
+            self.rot_vector_axis.setData(pos=np.array([np.zeros(3), self.vector_len * vector]))
+
+    def callback_clear(self):
+        self.qw.setValue(1)
+        self.qx.setValue(0)
+        self.qy.setValue(0)
+        self.qz.setValue(0)
+        self.lb_formula.setText(
+            f"cos({self.angle.value()}/2)   +   sin({self.angle.value()}/2) * ({self.vx.value()} + {self.vy.value()} + {self.vz.value()})")
+
+    def callback_animation(self):
+        anim = threading.Thread(target=self.animation_update, args=())
+        anim.start()
+
+    def animation_update(self):
+        step = self.angle.value() / 40
+        sleep = 0.05
+        for i in np.arange(0, self.angle.value() + step, step):
+            self.angle.setValue(i)
+            time.sleep(sleep)
+
     def update_rotation_vector(self):
         self.angle.blockSignals(True)
         self.vx.blockSignals(True)
@@ -169,7 +195,6 @@ class ViewQVisualiser(Ui_MainWindow):
         self.vx.blockSignals(False)
         self.vy.blockSignals(False)
         self.vz.blockSignals(False)
-
 
     def update_euler(self):
         self.roll.blockSignals(True)
@@ -200,6 +225,9 @@ class ViewQVisualiser(Ui_MainWindow):
         self.qx.blockSignals(False)
         self.qy.blockSignals(False)
         self.qz.blockSignals(False)
+
+        self.lb_formula.setText(
+            f"cos({self.angle.value()}/2)   +   sin({self.angle.value()}/2) * ({self.vx.value()} + {self.vy.value()} + {self.vz.value()})")
 
     def update(self):
         """
@@ -238,5 +266,6 @@ class ViewQVisualiser(Ui_MainWindow):
         self.z_axis.setData(pos=np.array([np.zeros(3), self.vector_len * dcm[:, 0].copy()]))
         self.text_item_z.setData(pos=self.text_vector_distance * dcm[:, 0].copy())
 
-        vector = np.array([vector_val[3], vector_val[1], vector_val[2]])
-        self.rot_vector_axis.setData(pos=np.array([np.zeros(3), self.vector_len * vector]))
+        if self.cb_show_vector.isChecked():
+            vector = np.array([vector_val[3], vector_val[1], vector_val[2]])
+            self.rot_vector_axis.setData(pos=np.array([np.zeros(3), self.vector_len * vector]))
