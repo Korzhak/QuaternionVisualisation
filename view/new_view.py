@@ -57,11 +57,14 @@ class ViewQVisualiser(Ui_MainWindow):
         self.x_text_point = np.array([0, self.text_vector_distance, 0])
         self.y_text_point = np.array([0, 0, self.text_vector_distance])
         self.z_text_point = np.array([self.text_vector_distance, 0, 0])
+        self.rotation_vector_point = np.array([0, 0, 0])
 
         self.x_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.x_point]), width=3)
         self.y_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.y_point]), width=3)
         self.z_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.z_point]), width=3)
         self.rot_vector_axis = gl.GLLinePlotItem(pos=np.array([self.zero_point, self.rot_vector_point]), width=3)
+
+        self.rot_vector_axis.setVisible(self.cb_show_vector.isChecked())
 
         self.x_axis.setData(color=(1, 0, 0, 1))
         self.y_axis.setData(color=(1, 1, 0, 1))
@@ -82,11 +85,17 @@ class ViewQVisualiser(Ui_MainWindow):
         self.text_item_z = gl.GLTextItem(pos=self.z_text_point, text='Z', color=(0, 0, 255, 200))
         self.six_dof_animation.addItem(self.text_item_z)
 
+        self.text_item_rotation_vector = gl.GLTextItem(pos=self.rotation_vector_point, text='r', color=(255, 255, 255))
+        self.six_dof_animation.addItem(self.text_item_rotation_vector)
+
+        self.text_item_rotation_vector.setVisible(self.cb_show_vector.isChecked())
+
         self.six_dof_animation.setCameraPosition(distance=0.5)
         self.six_dof_animation.setBackgroundColor(background)
 
-        self.update_q()
+        self.update_rotation_vector()
         self.update_euler()
+        self.update_q()
         self.update()
 
         self.connector()
@@ -116,7 +125,13 @@ class ViewQVisualiser(Ui_MainWindow):
         self.pitch.valueChanged.connect(self.callback_euler)
         self.yaw.valueChanged.connect(self.callback_euler)
 
+        self.cb_show_vector.clicked.connect(self.cb_show_vector_callback)
+
         # self.bt_play_animation.clicked.connect(self.animation_callback)
+
+    def cb_show_vector_callback(self):
+        self.rot_vector_axis.setVisible(self.cb_show_vector.isChecked())
+        self.text_item_rotation_vector.setVisible(self.cb_show_vector.isChecked())
 
     def callback_q(self):
         """
@@ -239,4 +254,12 @@ class ViewQVisualiser(Ui_MainWindow):
         self.text_item_z.setData(pos=self.text_vector_distance * dcm[:, 0].copy())
 
         vector = np.array([vector_val[3], vector_val[1], vector_val[2]])
-        self.rot_vector_axis.setData(pos=np.array([np.zeros(3), self.vector_len * vector]))
+
+        if vector.any() and self.cb_show_vector.isChecked():
+            self.rot_vector_axis.setVisible(True)
+            self.text_item_rotation_vector.setVisible(True)
+            self.rot_vector_axis.setData(pos=np.array([np.zeros(3), self.vector_len * vector]))
+            self.text_item_rotation_vector.setData(pos=vector * self.vector_len)
+        else:
+            self.rot_vector_axis.setVisible(False)
+            self.text_item_rotation_vector.setVisible(False)
