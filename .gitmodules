@@ -1,3 +1,3 @@
 [submodule "submodule/QLogic"]
 	path = submodule/QLogic
-	url = /Users/user/Projects/QLogic
+	url = git@github.com:Korzhak/QLogic.git
